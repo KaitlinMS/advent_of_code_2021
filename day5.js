@@ -668,5 +668,4 @@ let dangerousAreas = map => {
 };
 
 addHits(data);
-console.log(pointMap);
 console.log('Dangerous areas: ' + dangerousAreas(pointMap));
