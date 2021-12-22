@@ -499,21 +499,34 @@ let data = "959,103 -> 139,923\n" +
     "921,633 -> 921,340\n" +
     "872,63 -> 233,63";
 
-let testData = "872,63 -> 233,63";
+let testData = "0,9 -> 5,9\n" +
+"8,0 -> 0,8\n" +
+"9,4 -> 3,4\n" +
+"2,2 -> 2,1\n" +
+"7,0 -> 7,4\n" +
+"6,4 -> 2,0\n" +
+"0,9 -> 2,9\n" +
+"3,4 -> 1,4\n" +
+"0,0 -> 8,8\n" +
+"5,5 -> 8,2";
+
+let testData2 = "872,63 -> 233,63";
 
 // Set up a map to store coordinates and how many times that point is "hit".
-// {[x, y], hits}
+// {"x,y", hits}
 let pointMap = new Map();
 
 // A nice little code snippet from the Array docs:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from#sequence_generator_range
 let range = (min, max, step) => {
-    return Array.from({length: (max - min) / step + 1}, (_, i) => min + (i * step));
+    let minNum = Number(min);
+    let maxNum = Number(max);
+
+    return Array.from({length: (maxNum - minNum) / step + 1}, (_, i) => minNum + (i * step));
 }
 
 let addPointToMap = (point) => {
     // If the point is already in the map, then we should instead just increment the number of hits
-
     if(pointMap.has(point)) {
         pointMap.set(point, pointMap.get(point) + 1);
     } else {
@@ -523,7 +536,7 @@ let addPointToMap = (point) => {
 
 let createPoint = (pointData) => {
     let coordinate = pointData.split(',');
-    return [Number(coordinate[0]), Number(coordinate[1])];
+    return [coordinate[0], coordinate[1]];
 }
 
 let findLineDirection = (point1, point2) => {
@@ -556,33 +569,69 @@ let findMax = (value1, value2) => {
 
 // Parse the data given
 let addHits = (data) => {
-    let parsedData = data.split(' -> ');
+    let parsedData = data.split('\n');
 
-    // I could do this all in a loop, but it's easier to convert them to numbers when they're not in a loop.
-    // Set up point1
-    let point1 = createPoint(parsedData[0]);
+    parsedData.forEach(function(dataPoint) {
+        let splitPoint = dataPoint.split(' -> ');
 
-    //Set up point2
-    let point2 = createPoint(parsedData[1]);
+        // Set up point1
+        let point1 = splitPoint[0];
+        console.log('Point 1: ' + point1);
 
-    // Add each point to the map
-    addPointToMap(point1);
-    addPointToMap(point2);
-    console.log(pointMap);
+        //Set up point2
+        let point2 = splitPoint[1];
+        console.log('Point 2: ' + point2);
 
-    // Now we need to look at all the points in between those two points and add a hit for those
-    // The directionality doesn't seem to matter, so just figure out which number is the min and which is the max
-    let direction = findLineDirection(point1, point2);
-    if (direction === 'vertical') {
-        let min = findMin(point1[1], point2[1]);
-        let max = findMax(point1[1], point2[1]);
-    } else if (direction === 'horizontal') {
-        let min = findMin(point1[0], point2[0]);
-        let max = findMax(point1[0], point2[0]);
-    }
+        // Add each point to the map
+        // addPointToMap(point1);
+        // addPointToMap(point2);
 
-    console.log(range(233, 872, 1));
-    console.log(range(63, 63, 1));
+        // Now we need to look at all the points in between those two points and add a hit for those
+        // The directionality doesn't seem to matter, so just figure out which number is the min and which is the max
+        let direction = findLineDirection(point1, point2);
+
+        if (direction === 'vertical') {
+            // x-coordinates are the same
+            console.log('vertical');
+            let min = findMin(point1[1], point2[1]);
+            let max = findMax(point1[1], point2[1]);
+
+            // Find all the y-coordinates
+            let yCoordinates = range(min, max, 1);
+
+            // Now add all those coordinates to the pointMap!
+            yCoordinates.forEach(function(yCoordinate) {
+                addPointToMap([point1[0], yCoordinate]);
+            });
+        } else if (direction === 'horizontal') {
+            // y-coordinates are the same
+            console.log('horizontal');
+            let min = findMin(point1[0], point2[0]);
+            let max = findMax(point1[0], point2[0]);
+
+            // Find all the x-coordinates
+            let xCoordinates = range(min, max, 1);
+
+            // Now add all those coordinates to the pointMap!
+            xCoordinates.forEach(function(xCoordinate) {
+                addPointToMap(xCoordinate.toString() + ',' + point1[2]);
+            });
+        }
+    })
 }
 
+let dangerousAreas = map => {
+  let dangers = 0;
+
+    for (let count of map.values()){
+        if (count > 1) {
+            dangers++;
+        }
+    }
+
+    return dangers;
+};
+
 addHits(testData);
+console.log(pointMap);
+console.log('Dangerous areas: ' + dangerousAreas(pointMap));
