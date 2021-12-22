@@ -523,6 +523,13 @@ let range = (min, max, step) => {
     return Array.from({length: (maxNum - minNum) / step + 1}, (_, i) => minNum + (i * step));
 }
 
+let reverseRange = (max, min, step) => {
+    let minNum = Number(min);
+    let maxNum = Number(max);
+
+    return Array.from({ length: (maxNum - minNum) / step + 1}, (_, i) => maxNum - (i * step));
+}
+
 let addPointToMap = (point) => {
     // If the point is already in the map, then we should instead just increment the number of hits
     if(pointMap.has(point)) {
@@ -553,19 +560,15 @@ let findLineDirection = (point1, point2) => {
     }
 }
 
-let findMin = (value1, value2) => {
-    if (value1 < value2) {
-        return value1;
-    } else {
-        return value2;
-    }
-}
+let findAllCoordinates = (coordinate1, coordinate2, direction) => {
+    let min = Math.min(Number(coordinate1), Number(coordinate2)).toString();
+    let max = Math.max(Number(coordinate1), Number(coordinate2)).toString();
 
-let findMax = (value1, value2) => {
-    if (value1 > value2) {
-        return value1;
-    } else {
-        return value2;
+    // Find all the coordinates
+    if (direction === "positive") {
+        return range(min, max, 1);
+    } else if (direction === "negative") {
+        return reverseRange(max, min, 1);
     }
 }
 
@@ -596,11 +599,7 @@ let addHits = (data) => {
 
         if (direction === 'vertical') {
             // x-coordinates are the same
-            let min = Math.min(Number(point1Y), Number(point2Y)).toString();
-            let max = Math.max(Number(point1Y), Number(point2Y)).toString();
-
-            // Find all the y-coordinates
-            let yCoordinates = range(min, max, 1);
+            let yCoordinates = findAllCoordinates(point1Y, point2Y, 'positive');
 
             // Now add all those coordinates to the pointMap!
             yCoordinates.forEach(function(yCoordinate) {
@@ -608,15 +607,50 @@ let addHits = (data) => {
             });
         } else if (direction === 'horizontal') {
             // y-coordinates are the same
-            let min = Math.min(Number(point1X), Number(point2X)).toString();
-            let max = Math.max(Number(point1X), Number(point2X)).toString();
-
-            // Find all the x-coordinates
-            let xCoordinates = range(min, max, 1);
+            let xCoordinates = findAllCoordinates(point1X, point2X, 'positive');
 
             // Now add all those coordinates to the pointMap!
             xCoordinates.forEach(function(xCoordinate) {
                 addPointToMap(xCoordinate.toString() + ',' + point1Y);
+            });
+        } else if (direction === 'diagonal') {
+            // The slope of a line at 45º is always 1, so the points will just decrease/increase by 1 unit each time
+
+            // Figure out which way this line is moving
+            let deltaX = Math.sign(point2X - point1X);
+            let deltaY = Math.sign(point2Y - point1Y);
+
+            let xCoordinates = [];
+            let yCoordinates = [];
+
+            if (deltaX > 0 && deltaY < 0) {
+                // x is increasing, y is decreasing
+                xCoordinates = findAllCoordinates(point2X, point1X, 'positive');
+                yCoordinates = findAllCoordinates(point2Y, point1Y, 'negative');
+            } else if (deltaX < 0 && deltaY < 0) {
+                // x is decreasing, y is decreasing
+                xCoordinates = findAllCoordinates(point2X, point1X, 'negative');
+                yCoordinates = findAllCoordinates(point2Y, point1Y, 'negative');
+            } else if (deltaX < 0 && deltaY > 0) {
+                // x is decreasing, y is increasing
+                xCoordinates = findAllCoordinates(point2X, point1X, 'negative');
+                yCoordinates = findAllCoordinates(point2Y, point1Y, 'positive');
+            } else if (deltaX > 0 && deltaY > 0) {
+                // x is increasing, y is increasing
+                xCoordinates = findAllCoordinates(point2X, point1X, 'positive');
+                yCoordinates = findAllCoordinates(point2Y, point1Y, 'positive');
+            }
+
+            // We know that these coordinate arrays will always be the same size, so we can iterate safely through
+            // both of them at the same time
+            let allPoints = [];
+            for (let i = 0; i < xCoordinates.length; i++) {
+                allPoints.push(xCoordinates[i].toString() + ',' + yCoordinates[i].toString());
+            }
+
+            // Now add all these new points to the point map!
+            allPoints.forEach(function(coordinate) {
+                addPointToMap(coordinate);
             });
         }
     })
@@ -630,10 +664,9 @@ let dangerousAreas = map => {
             dangers++;
         }
     }
-
     return dangers;
 };
 
 addHits(data);
-// console.log(pointMap);
+console.log(pointMap);
 console.log('Dangerous areas: ' + dangerousAreas(pointMap));
