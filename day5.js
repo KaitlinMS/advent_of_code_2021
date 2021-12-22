@@ -510,8 +510,6 @@ let testData = "0,9 -> 5,9\n" +
 "0,0 -> 8,8\n" +
 "5,5 -> 8,2";
 
-let testData2 = "872,63 -> 233,63";
-
 // Set up a map to store coordinates and how many times that point is "hit".
 // {"x,y", hits}
 let pointMap = new Map();
@@ -540,10 +538,19 @@ let createPoint = (pointData) => {
 }
 
 let findLineDirection = (point1, point2) => {
-    if (point1[0] === point2[0]) {
+    let splitPoint1 = point1.split(',');
+    let splitPoint2 = point2.split(',');
+
+    let point1X = splitPoint1[0];
+    let point1Y = splitPoint1[1];
+
+    let point2X = splitPoint2[0];
+    let point2Y = splitPoint2[1];
+
+    if (point1X === point2X) {
         // If the x-coordinates are the same, it's a vertical line
         return 'vertical';
-    } else if (point1[1] === point2[1]) {
+    } else if (point1Y === point2Y) {
         // If the y-coordinates are the same, it's a horizontal line
         return 'horizontal';
     } else {
@@ -576,45 +583,46 @@ let addHits = (data) => {
 
         // Set up point1
         let point1 = splitPoint[0];
-        console.log('Point 1: ' + point1);
 
         //Set up point2
         let point2 = splitPoint[1];
-        console.log('Point 2: ' + point2);
 
-        // Add each point to the map
-        // addPointToMap(point1);
-        // addPointToMap(point2);
-
-        // Now we need to look at all the points in between those two points and add a hit for those
+        // Now we need to look at all the points in between the two starter points and add a hit for those
         // The directionality doesn't seem to matter, so just figure out which number is the min and which is the max
         let direction = findLineDirection(point1, point2);
 
+        let splitPoint1 = point1.split(',');
+        let splitPoint2 = point2.split(',');
+
+        let point1X = splitPoint1[0];
+        let point1Y = splitPoint1[1];
+
+        let point2X = splitPoint2[0];
+        let point2Y = splitPoint2[1];
+
         if (direction === 'vertical') {
             // x-coordinates are the same
-            console.log('vertical');
-            let min = findMin(point1[1], point2[1]);
-            let max = findMax(point1[1], point2[1]);
+            let min = findMin(point1Y, point2Y);
+            let max = findMax(point1Y, point2Y);
 
             // Find all the y-coordinates
             let yCoordinates = range(min, max, 1);
 
             // Now add all those coordinates to the pointMap!
             yCoordinates.forEach(function(yCoordinate) {
-                addPointToMap([point1[0], yCoordinate]);
+                addPointToMap(point1X + ',' + yCoordinate.toString());
             });
         } else if (direction === 'horizontal') {
             // y-coordinates are the same
-            console.log('horizontal');
-            let min = findMin(point1[0], point2[0]);
-            let max = findMax(point1[0], point2[0]);
+            let min = findMin(point1X, point2X);
+            let max = findMax(point1X, point2X);
 
             // Find all the x-coordinates
             let xCoordinates = range(min, max, 1);
 
             // Now add all those coordinates to the pointMap!
             xCoordinates.forEach(function(xCoordinate) {
-                addPointToMap(xCoordinate.toString() + ',' + point1[2]);
+                addPointToMap(xCoordinate.toString() + ',' + point1Y);
             });
         }
     })
