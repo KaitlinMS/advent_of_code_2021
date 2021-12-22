@@ -532,11 +532,6 @@ let addPointToMap = (point) => {
     }
 }
 
-let createPoint = (pointData) => {
-    let coordinate = pointData.split(',');
-    return [coordinate[0], coordinate[1]];
-}
-
 let findLineDirection = (point1, point2) => {
     let splitPoint1 = point1.split(',');
     let splitPoint2 = point2.split(',');
@@ -574,7 +569,6 @@ let findMax = (value1, value2) => {
     }
 }
 
-// Parse the data given
 let addHits = (data) => {
     let parsedData = data.split('\n');
 
@@ -602,8 +596,8 @@ let addHits = (data) => {
 
         if (direction === 'vertical') {
             // x-coordinates are the same
-            let min = findMin(point1Y, point2Y);
-            let max = findMax(point1Y, point2Y);
+            let min = Math.min(Number(point1Y), Number(point2Y)).toString();
+            let max = Math.max(Number(point1Y), Number(point2Y)).toString();
 
             // Find all the y-coordinates
             let yCoordinates = range(min, max, 1);
@@ -614,8 +608,8 @@ let addHits = (data) => {
             });
         } else if (direction === 'horizontal') {
             // y-coordinates are the same
-            let min = findMin(point1X, point2X);
-            let max = findMax(point1X, point2X);
+            let min = Math.min(Number(point1X), Number(point2X)).toString();
+            let max = Math.max(Number(point1X), Number(point2X)).toString();
 
             // Find all the x-coordinates
             let xCoordinates = range(min, max, 1);
@@ -632,7 +626,7 @@ let dangerousAreas = map => {
   let dangers = 0;
 
     for (let count of map.values()){
-        if (count > 1) {
+        if (count >= 2) {
             dangers++;
         }
     }
@@ -640,6 +634,6 @@ let dangerousAreas = map => {
     return dangers;
 };
 
-addHits(testData);
-console.log(pointMap);
+addHits(data);
+// console.log(pointMap);
 console.log('Dangerous areas: ' + dangerousAreas(pointMap));
